@@ -116,6 +116,13 @@ app.get('/', async (req, res) => {
     res.render('index', { vehicles, licensePlates: licensePlatesData });  // Pass licensePlates to EJS
 });
 
+app.get('/map', async (req, res) => {
+    const vehicles = await fetchVehiclesForRoute();
+    const licensePlatesData = JSON.parse(fs.readFileSync('./data/licensePlates.json', 'utf8'));
+
+    res.render('index', { vehicles, licensePlates: licensePlatesData });  // Pass licensePlates to EJS
+});
+
 
 const PORT = process.env.PORT || 3000; // Use environment port or default to 3000
 var server = app.listen(PORT, () => {
