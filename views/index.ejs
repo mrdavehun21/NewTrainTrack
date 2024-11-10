@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<style>
+    #map {
+        height: 100vh;
+        width: 100%;
+    }
+    body {
+        margin: 0;
+    }
+    .navbar-brand, #homeTab {
+        font-family: 'Racing Sans One';
+        color: #108541 !important;
+        font-weight: bolder;
+    }
+</style>
+<body>
+    <nav class="navbar bg-dark navbar-expand-lg" data-bs-theme="dark">
+        <div class="container-fluid">
+          <h1 class="navbar-brand">MXA Motorkocsik-H5</h1>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" id="homeTab"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+      <div class="offcanvas-header">
+        <h1 id="offcanvasRightLabel">Menetrend</h1>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+      </div>
+    </div>
+
+    <div class="modal fade" id="noDataModal" tabindex="-1" aria-labelledby="noDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="noDataModalLabel">Notification</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="noDataModalBody">
+              <!-- Message will be inserted here dynamically -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <div id="map"></div>
+
+    <script>
+        var map = L.map('map').setView([47.575247, 19.068515], 12);
+
+        var tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Create a MarkerClusterGroup for clustering
+        var markerClusterGroup = L.markerClusterGroup();
+        map.addLayer(markerClusterGroup);
+
+        //DelayTime
+        function calculateDelay(predictedArrivalTime, arrivalTime) {
+          const predictedTime = new Date(`1970-01-01T${predictedArrivalTime}:00`).getTime();
+          const scheduledTime = new Date(`1970-01-01T${arrivalTime}:00`).getTime();
+          const delayInMinutes = (predictedTime - scheduledTime) / (1000 * 60); // convert milliseconds to minutes
+          return delayInMinutes > 0 ? `${delayInMinutes} p` : ''; // Return delay in minutes or display nothing
+        }
+
+        // Function to show the no-data/error modal with a custom message
+        function showNoDataModal(message) {
+            const modalBody = document.getElementById('noDataModalBody');
+            modalBody.textContent = message;
+            const noDataModal = new bootstrap.Modal(document.getElementById('noDataModal'));
+            noDataModal.show();
+        }
+
+        // Function to generate stop data dynamically
+        function generateStopData(vehicle) {
+            const stopDataContainer = document.createElement('div');
+            stopDataContainer.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Megálló</th>
+                            <th>Érkezési idő/</th>
+                            <th>Késés</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stopTimesList"></tbody>
+                </table>`;            ;
+            const stopTimesList = stopDataContainer.querySelector('#stopTimesList');
+
+            // Loop through the stops for this vehicle
+            vehicle.stopData.forEach(stop => {
+                let stopRow = '';
+                // Check conditions and create the row based on the stop data
+                if (vehicle.stopSequence > stop.stopSequence && vehicle.status === 'IN_TRANSIT_TO') {
+                    if (stop.predictedArrivalTime !== "Invalid Date") {
+                        stopRow = `
+                            <tr>
+                                <td>${stop.stopId}</td>
+                                <td>${stop.predictedArrivalTime}</td>
+                                <td>${calculateDelay(stop.predictedArrivalTime, stop.arrivalTime)}</td>
+                            </tr>`
+                        ;
+                    } else {
+                        stopRow = `
+                            <tr>
+                                <td>${stop.stopId}</td>
+                                <td>${stop.predictedDepartureTime}</td>
+                                <td>${calculateDelay(stop.predictedDepartureTime, stop.arrivalTime)}</td>
+                            </tr>`
+                        ;
+                    }
+                } else if (vehicle.stopSequence >= stop.stopSequence && vehicle.status !== 'IN_TRANSIT_TO') {
+                    if (stop.predictedArrivalTime !== "Invalid Date") {
+                        stopRow = `
+                            <tr>
+                                <td>${stop.stopId}</td>
+                                <td>${stop.predictedArrivalTime}</td>
+                                <td>${calculateDelay(stop.predictedArrivalTime, stop.arrivalTime)}</td>
+                            </tr>`
+                        ;
+                    } else {
+                        stopRow = `
+                            <tr>
+                                <td>${stop.stopId}</td>
+                                <td>${stop.predictedDepartureTime === "Invalid Date" ? stop.departureTime : stop.predictedDepartureTime}</td>
+                                <td>${calculateDelay(stop.predictedDepartureTime, stop.arrivalTime)}</td>
+                            </tr>`
+                        ;
+                    }
+                } else {
+                    stopRow = `
+                        <tr>
+                            <td>${stop.stopId}</td>
+                            <td>${stop.predictedArrivalTime === "Invalid Date" ? stop.arrivalTime : stop.predictedArrivalTime}</td>
+                            <td>${calculateDelay(stop.predictedArrivalTime, stop.arrivalTime)}</td>
+                        </tr>`
+                    ;
+                }
+                // Append each stop row to the table
+                stopTimesList.innerHTML += stopRow;
+            });
+
+            // Append the stop details container to the offcanvas
+            const offcanvasBody = document.querySelector('#offcanvasRight .offcanvas-body');
+            offcanvasBody.appendChild(stopDataContainer);
+        }
+
+        // Add a click event on each marker to display vehicle stop data
+        function addMarkerClickListener(marker, vehicle) {
+            marker.on('click', function () {
+                // Clear existing data in the offcanvas before displaying new data
+                const offcanvasBody = document.querySelector('#offcanvasRight .offcanvas-body');
+                offcanvasBody.innerHTML = ''; // Clear previous content
+                // Call the function to generate and display the stop data for this vehicle
+                generateStopData(vehicle);
+            });
+        }
+
+        // Function to create and update the data length div
+        function updateDataLengthDisplay(dataLength) {
+            const homeTab = document.getElementById('homeTab');
+            homeTab.textContent = `Összesen: ${dataLength} szerelvény`;
+        }
+
+        // Function to fetch and update data
+        function fetchData() {
+            fetch('/map', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.json())
+                .then(data => {
+                    // Clear all markers in the cluster group only when new data is loaded
+                    markerClusterGroup.clearLayers();
+
+                    // Check if data is available
+                    if (data.vehicles && data.vehicles.length > 0) {
+                        const dataLength = data.vehicles.length;
+
+                        updateDataLengthDisplay(dataLength);
+                    
+
+                        // Loop through the vehicle data and add markers for each vehicle
+                        data.vehicles.forEach(vehicle => {
+                            const [part1, part2] = vehicle.licensePlate.split("-");
+                            const items = data.licensePlates.filter(item => item.palyaszam.includes(part1) || item.palyaszam.includes(part2));
+                            let direction = vehicle.bearing || 0;
+
+                            // Popup content
+                            if (items.length > 0) {
+                                const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
+                                const popupContent = `<div>
+                                                        <span><img src="../icons/H5_logo.png" style="width: 4rem; position: relative; top: 7px;"> </span>
+                                                        <span style="font-weight: bolder; font-size: 17px;"> ► ${vehicle.tripHeadsign}</span>
+                                                        <hr>
+                                                        <strong>${palyaszamFormatted}</strong>
+                                                        <br>
+                                                        <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Menetrend</button>
+                                                    </div>`;
+
+                                // Create a marker for each vehicle
+                                var marker = L.marker([vehicle.location.lat, vehicle.location.lon], {
+                                    icon: L.divIcon({
+                                        className: 'custom-marker',
+                                        html: `<svg width="26" height="32" viewBox="0 0 26 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(${direction}deg);">
+                                                <path d="M23.9395 18.7344C23.9395 24.8689 18.8493 29.959 12.7148 29.959C6.5909 29.959 1.5 24.8696 1.5 18.7344C1.5 12.6082 6.58187 7.51953 12.7051 7.51953C18.8418 7.51953 23.9395 12.6119 23.9395 18.7344Z" fill="white" stroke="#8A236C" stroke-width="3"/>
+                                                <path d="M21 6L15 4.875L13 4.5L11 4.875L5 6L13 0L21 6Z" fill="black"/>
+                                                </svg>`,
+                                        iconSize: [26, 32]
+                                    })
+                                }).bindPopup(popupContent);
+
+                                // Add the marker to the cluster group
+                                markerClusterGroup.addLayer(marker);
+
+                                // Add click event to the marker to display details in the offcanvas
+                                addMarkerClickListener(marker, vehicle);
+                                
+                            }
+                        });
+                    }else{
+                        // Show modal if no vehicles are available
+                        showNoDataModal("Nincs elérhető szerelvény adat jelenleg.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    // Show modal in case of an error
+                    showNoDataModal("Hiba történt az adatok betöltése közben. Próbálja újra később.");
+                });
+        }
+
+        const stops = [
+            { "position": [47.598091, 19.054599], "name": ["Békásmegyer"] },
+            { "position": [47.506776, 19.039318], "name": ["Batthyány tér"] },
+            { "position": [47.661038, 19.075607], "name": ["Szentendre"] },
+            { "position": [47.652191, 19.064901], "name": ["Pannóniatelep"] },
+            { "position": [47.642749, 19.032657], "name": ["Pomáz"] },
+            { "position": [47.628802, 19.043332], "name": ["Szentistvántelep"] },
+            { "position": [47.621863, 19.046592], "name": ["Budakalász, Lenfonó"] },
+            { "position": [47.621692, 19.046912], "name": ["Budakalász, Lenfonó"] },
+            { "position": [47.616165, 19.05492], "name": ["Budakalász"] },
+            { "position": [47.586272, 19.045078], "name": ["Csillaghegy"] },
+            { "position": [47.585948, 19.044932], "name": ["Csillaghegy"] },
+            { "position": [47.575685, 19.048568], "name": ["Rómaifürdő"] },
+            { "position": [47.567255, 19.048728], "name": ["Aquincum"] },
+            { "position": [47.557039, 19.045372], "name": ["Kaszásdűlő"] },
+            { "position": [47.556508, 19.045133], "name": ["Kaszásdűlő"] },
+            { "position": [47.551903, 19.046243], "name": ["Filatorigát"] },
+            { "position": [47.539636, 19.047161], "name": ["Szentélek tér"] },
+            { "position": [47.533964, 19.044643], "name": ["Tímár utca"] },
+            { "position": [47.527303, 19.040168], "name": ["Szépvölgyi út"] },
+            { "position": [47.515376, 19.03938], "name": ["Margit híd, budai hídfő"] }
+        ]
+
+        stops.forEach(stop => {
+            const [lat, lon] = stop.position;
+            const name = stop.name[0];
+
+            L.marker([lat, lon], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<img src="../icons/megallo.svg" width="26" height="26"/>`,
+                    iconSize: [26, 32]
+                })
+            })
+            .bindPopup(`<strong>${name}</strong>`)
+            .addTo(map);
+        });
+                    
+        // Fetch the vehicle data on page load
+        fetchData();
+
+        // Refresh data every 30 seconds (30000 milliseconds)
+        setInterval(fetchData, 30000);
+    </script>
+</body>
+</html>

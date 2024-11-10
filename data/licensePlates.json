@@ -1,0 +1,114 @@
+[
+    {
+        "palyaszam": ["977", "978"],
+        "indexNum": [1]
+    },
+    {
+        "palyaszam": ["975", "976"],
+        "indexNum": [1, 2]
+    },
+    {
+        "palyaszam": ["979", "980"],
+        "indexNum": [2]
+    },
+    {
+        "palyaszam": ["981", "982"],
+        "indexNum": [2, 2]
+    },
+    {
+        "palyaszam": ["987", "988"],
+        "indexNum": [3]
+    },
+    {
+        "palyaszam": ["989", "990"],
+        "indexNum": [3, 2]
+    },
+    {
+        "palyaszam": ["991", "992"],
+        "indexNum": [4]
+    },
+    {
+        "palyaszam": ["993", "994"],
+        "indexNum": [4, 2]
+    },
+    {
+        "palyaszam": ["995", "996"],
+        "indexNum": [5]
+    },
+    {
+        "palyaszam": ["1141", "1142"],
+        "indexNum": [5, 2]
+    },
+    {
+        "palyaszam": ["1101", "1102"],
+        "indexNum": [6]
+    },
+    {
+        "palyaszam": ["1135", "1136"],
+        "indexNum": [6, 2]
+    },
+    {
+        "palyaszam": ["1103", "1104"],
+        "indexNum": [7]
+    },
+    {
+        "palyaszam": ["1105", "1106"],
+        "indexNum": [7, 2]
+    },
+    {
+        "palyaszam": ["1115", "1116"],
+        "indexNum": [8]
+    },
+    {
+        "palyaszam": ["1117", "1118"],
+        "indexNum": [8, 2]
+    },
+    {
+        "palyaszam": ["1127", "1128"],
+        "indexNum": [9]
+    },
+    {
+        "palyaszam": ["1147", "1148"],
+        "indexNum": [9, 2]
+    },
+    {
+        "palyaszam": ["1129", "1130"],
+        "indexNum": [10]
+    },
+    {
+        "palyaszam": ["1139", "1140"],
+        "indexNum": [10, 2]
+    },
+    {
+        "palyaszam": ["1137", "1138"],
+        "indexNum": [11]
+    },
+    {
+        "palyaszam": ["971", "972"],
+        "indexNum": [11, 2]
+    },
+    {
+        "palyaszam": ["1133", "1134"],
+        "indexNum": [12]
+    },
+    {
+        "palyaszam": ["1113", "1114"],
+        "indexNum": [12, 2]
+    },
+    {
+        "palyaszam": ["1145", "1146"],
+        "indexNum": [13]
+    },
+    {
+        "palyaszam": ["1109", "1110"],
+        "indexNum": [13, 2]
+    },
+    {
+        "palyaszam": ["1123", "1124"],
+        "indexNum": [14]
+    },
+    {
+        "palyaszam": ["1149", "1150"],
+        "indexNum": [14, 2]
+    }
+]  
