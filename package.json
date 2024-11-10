@@ -1,9 +1,11 @@
 {
   "name": "newtraintrack",
-  "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"
+  },
+  "author": {
+    "name": "mrdavehun21"
   },
   "dependencies": {
     "axios": "^1.7.7",

@@ -117,6 +117,8 @@ app.get('/', async (req, res) => {
 });
 
 
-app.listen(8080, () => {
-    console.log('Server running on http://localhost:8080');
+const PORT = process.env.PORT || 3000; // Use environment port or default to 3000
+var server = app.listen(PORT, () => {
+    server.setTimeout(500000); // Set timeout to 500 seconds (500,000 milliseconds)
+    console.log(`Server is running on port ${PORT}`);
 });
