@@ -8,59 +8,59 @@
         "indexNum": [1, 2]
     },
     {
-        "palyaszam": ["979", "980"],
+        "palyaszam": ["987", "988"],
         "indexNum": [2]
     },
     {
-        "palyaszam": ["981", "982"],
+        "palyaszam": ["989", "990"],
         "indexNum": [2, 2]
     },
     {
-        "palyaszam": ["987", "988"],
+        "palyaszam": ["991", "992"],
         "indexNum": [3]
     },
     {
-        "palyaszam": ["989", "990"],
+        "palyaszam": ["993", "994"],
         "indexNum": [3, 2]
     },
     {
-        "palyaszam": ["991", "992"],
+        "palyaszam": ["1101", "1102"],
         "indexNum": [4]
     },
     {
-        "palyaszam": ["993", "994"],
+        "palyaszam": ["1135", "1136"],
         "indexNum": [4, 2]
     },
     {
-        "palyaszam": ["995", "996"],
+        "palyaszam": ["1103", "1104"],
         "indexNum": [5]
     },
     {
-        "palyaszam": ["1141", "1142"],
+        "palyaszam": ["1105", "1106"],
         "indexNum": [5, 2]
     },
     {
-        "palyaszam": ["1101", "1102"],
+        "palyaszam": ["1111", "1112"],
         "indexNum": [6]
     },
     {
-        "palyaszam": ["1135", "1136"],
+        "palyaszam": ["1113", "1114"],
         "indexNum": [6, 2]
     },
     {
-        "palyaszam": ["1103", "1104"],
+        "palyaszam": ["1121", "1122"],
         "indexNum": [7]
     },
     {
-        "palyaszam": ["1105", "1106"],
+        "palyaszam": ["1117", "1118"],
         "indexNum": [7, 2]
     },
     {
-        "palyaszam": ["1115", "1116"],
+        "palyaszam": ["1123", "1124"],
         "indexNum": [8]
     },
     {
-        "palyaszam": ["1117", "1118"],
+        "palyaszam": ["1149", "1150"],
         "indexNum": [8, 2]
     },
     {
@@ -80,35 +80,35 @@
         "indexNum": [10, 2]
     },
     {
-        "palyaszam": ["1137", "1138"],
+        "palyaszam": ["1133", "1134"],
         "indexNum": [11]
     },
     {
-        "palyaszam": ["971", "972"],
+        "palyaszam": ["979", "980"],
         "indexNum": [11, 2]
     },
     {
-        "palyaszam": ["1133", "1134"],
+        "palyaszam": ["1137", "1138"],
         "indexNum": [12]
     },
     {
-        "palyaszam": ["1113", "1114"],
+        "palyaszam": ["971", "972"],
         "indexNum": [12, 2]
     },
     {
-        "palyaszam": ["1145", "1146"],
+        "palyaszam": ["1141", "1142"],
         "indexNum": [13]
     },
     {
-        "palyaszam": ["1109", "1110"],
+        "palyaszam": ["995", "996"],
         "indexNum": [13, 2]
     },
     {
-        "palyaszam": ["1123", "1124"],
+        "palyaszam": ["1109", "1110"],
         "indexNum": [14]
     },
     {
-        "palyaszam": ["1149", "1150"],
+        "palyaszam": ["1145", "1146"],
         "indexNum": [14, 2]
     }
 ]  

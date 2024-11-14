@@ -35,18 +35,40 @@
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" id="homeTab"></a>
               </li>
+              <li class="nav-item">
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#licensePlateModal">Show License Plates</button>
+              </li>
             </ul>
           </div>
         </div>
       </nav>
 
+
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
       <div class="offcanvas-header">
-        <h1 id="offcanvasRightLabel">Menetrend</h1>
+        <h5 id="offcanvasRightLabel">Menetrend</h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
       </div>
+    </div>
+
+    <!-- License Plates Modal -->
+    <div class="modal fade" id="licensePlateModal" tabindex="-1" aria-labelledby="licensePlateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="licensePlateModalLabel">Vehicle License Plates</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="licensePlateList">
+              <!-- License plates will be inserted here dynamically -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
     </div>
 
     <div class="modal fade" id="noDataModal" tabindex="-1" aria-labelledby="noDataModalLabel" aria-hidden="true">
@@ -110,7 +132,7 @@
                         </tr>
                     </thead>
                     <tbody id="stopTimesList"></tbody>
-                </table>`;            ;
+                </table>`;
             const stopTimesList = stopDataContainer.querySelector('#stopTimesList');
 
             // Loop through the stops for this vehicle
@@ -188,6 +210,29 @@
             homeTab.textContent = `Összesen: ${dataLength} szerelvény`;
         }
 
+        // Function to update the license plate list in the modal
+        function updateLicensePlateModal(vehicles, data) {
+            const licensePlateList = document.getElementById('licensePlateList');
+            licensePlateList.innerHTML = ''; // Clear previous content
+
+            vehicles.forEach((vehicle, index) => {
+                const [part1, part2] = vehicle.licensePlate.split("-");
+
+                // Filter items in data.licensePlates based on `palyaszam` including part1 or part2
+                const items = data.licensePlates.filter(item => 
+                    item.palyaszam.includes(part1) || item.palyaszam.includes(part2)
+                );
+
+                // Format each `palyaszam` as "A-B" and join them with spaces
+                const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
+
+                // Create and append a new paragraph element with the formatted license plate
+                const listItem = document.createElement('p');
+                listItem.textContent = `${index + 1}. ${palyaszamFormatted}`;
+                licensePlateList.appendChild(listItem);
+            });
+        }
+
         // Function to fetch and update data
         function fetchData() {
             fetch('/map', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -199,9 +244,9 @@
                     // Check if data is available
                     if (data.vehicles && data.vehicles.length > 0) {
                         const dataLength = data.vehicles.length;
-
                         updateDataLengthDisplay(dataLength);
-                    
+
+                        updateLicensePlateModal(data.vehicles, data);
 
                         // Loop through the vehicle data and add markers for each vehicle
                         data.vehicles.forEach(vehicle => {
@@ -209,15 +254,25 @@
                             const items = data.licensePlates.filter(item => item.palyaszam.includes(part1) || item.palyaszam.includes(part2));
                             let direction = vehicle.bearing || 0;
 
+                            const stopName = vehicle.stopName;
+                            const status = vehicle.status;
+
+                            // Create the status message based on the vehicle's status
+                            const statusMessage = vehicle.status === 'IN_TRANSIT_TO'
+                                ? `Jelenleg ${stopName} megálló felé közlekedik`
+                                : `Jelenleg ${stopName} megállóban áll`;   
+
                             // Popup content
                             if (items.length > 0) {
                                 const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
-                                const popupContent = `<div>
-                                                        <span><img src="../icons/H5_logo.png" style="width: 4rem; position: relative; top: 7px;"> </span>
-                                                        <span style="font-weight: bolder; font-size: 17px;"> ► ${vehicle.tripHeadsign}</span>
+                                const popupContent = `
+                                                    <div>
+                                                        <span><img src="../icons/H5_logo.png" style="width: 4rem;"> </span>
+                                                        <span style="font-weight: bolder; font-size: 17px;"> <img src="../icons/nyil.png" style="width: 2rem;"> ${vehicle.tripHeadsign}</span>
                                                         <hr>
                                                         <strong>${palyaszamFormatted}</strong>
                                                         <br>
+                                                        <p>${statusMessage}</p>
                                                         <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Menetrend</button>
                                                     </div>`;
 
