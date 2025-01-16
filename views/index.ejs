@@ -18,32 +18,27 @@
         margin: 0;
     }
     .navbar-brand, #homeTab {
-        font-family: 'Racing Sans One';
-        color: #108541 !important;
-        font-weight: bolder;
+        color: #108541;
+        font-weight: bold;
     }
 </style>
 <body>
     <nav class="navbar bg-dark navbar-expand-lg" data-bs-theme="dark">
         <div class="container-fluid">
-          <h1 class="navbar-brand">MXA Motorkocsik-H5</h1>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" id="homeTab"></a>
-              </li>
-              <li class="nav-item">
-                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#licensePlateModal">Show License Plates</button>
-              </li>
-            </ul>
-          </div>
+            <h1 class="navbar-brand">MXA Motorkocsik</h1>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav w-100">
+                    <li class="nav-item mx-auto p-3">
+                        <button class="btn px-3 btn-outline-light" id="homeTab" data-bs-toggle="modal" data-bs-target="#licensePlateModal">Lista</button>
+                    </li>
+                </ul>
+            </div>
         </div>
-      </nav>
-
-
+    </nav>
+    
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
       <div class="offcanvas-header">
         <h5 id="offcanvasRightLabel">Menetrend</h5>
@@ -58,7 +53,7 @@
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="licensePlateModalLabel">Vehicle License Plates</h5>
+              <h5 class="modal-title" id="licensePlateModalLabel">Lista nézet</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="licensePlateList">
@@ -75,7 +70,7 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="noDataModalLabel">Notification</h5>
+              <h5 class="modal-title" id="noDataModalLabel">Értesítések</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="noDataModalBody">
@@ -213,7 +208,31 @@
         // Function to update the license plate list in the modal
         function updateLicensePlateModal(vehicles, data) {
             const licensePlateList = document.getElementById('licensePlateList');
-            licensePlateList.innerHTML = ''; // Clear previous content
+
+            // Predefined list of license plates that are currently in transit
+            const inTransitPlates = [
+                "977-978 975-976",
+                "987-988 989-990",
+                "991-992 993-994",
+                "995-996 1141-1142",
+                "1101-1102 1135-1136",
+                "1103-1104 1105-1106",
+                "1107-1108 1109-1110", 
+                "1111-1112 1139-1140",
+                "1115-1116 1117-1118",
+                "1123-1124 1149-1150",
+                "1127-1128 1129-1130",
+                "1137-1138 971-972",
+                "1145-1146 1121-1122",
+                "1147-1148 979-980",
+            ];
+            let unmatchedInTransit = [...inTransitPlates]; // Copy of inTransitPlates to track unmatched plates
+
+            // Clear the current list
+            licensePlateList.innerHTML = '';
+            let title = document.createElement('h4');
+            title.textContent = 'Közlekedő járművek';
+            licensePlateList.appendChild(title); // Append the title to the list
 
             vehicles.forEach((vehicle, index) => {
                 const [part1, part2] = vehicle.licensePlate.split("-");
@@ -226,11 +245,80 @@
                 // Format each `palyaszam` as "A-B" and join them with spaces
                 const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
 
-                // Create and append a new paragraph element with the formatted license plate
-                const listItem = document.createElement('p');
-                listItem.textContent = `${index + 1}. ${palyaszamFormatted}`;
+                // Create a button for each vehicle
+                const listItem = document.createElement('button');
+                listItem.classList.add('btn', 'btn-success', 'w-100', 'text-start', 'mb-2');
+
+                // Use a Bootstrap row and column structure for the content
+                listItem.innerHTML = `
+                    <div class="row">
+                        <div class="col-12">
+                            <span>${index + 1}. ${palyaszamFormatted}</span>
+                        </div>
+                    </div>
+                `;
+
+
+                // Check if the formatted license plate exists in the in-transit list
+                if (inTransitPlates.some(plate => plate.includes(palyaszamFormatted))) {
+                    listItem.classList.replace('btn-success', 'btn-success'); // Keep it green if it's part of an in-transit plate
+                    unmatchedInTransit.splice(unmatchedInTransit.findIndex(plate => plate.includes(palyaszamFormatted)), 1);
+                } else {
+                    listItem.classList.replace('btn-success', 'btn-danger'); // Make it red if not in transit
+                }
+
+                // Add an event listener to close the popup when the modal is opened
+                const licensePlateModal = document.getElementById('licensePlateModal');
+                const modal = new bootstrap.Modal(licensePlateModal);
+
+                licensePlateModal.addEventListener('show.bs.modal', () => {
+                    // Close any open popups on the map
+                    map.closePopup();
+                });
+                
+                // Add click event to the button to navigate to the corresponding vehicle's popup
+                listItem.addEventListener('click', () => {
+                    // Close the modal
+                    const licensePlateModal = document.getElementById('licensePlateModal');
+                    const modal = bootstrap.Modal.getInstance(licensePlateModal);
+                    modal.hide(); // Close the modal
+
+                    // Find the corresponding vehicle marker
+                    const vehicleMarker = markerClusterGroup.getLayers().find(marker => {
+                        const markerPopupContent = marker.getPopup().getContent();
+                        return markerPopupContent.includes(palyaszamFormatted);
+                    });
+
+                    if (vehicleMarker) {
+                        vehicleMarker.openPopup(); // Open the popup for the corresponding vehicle
+                    }
+                });
+
                 licensePlateList.appendChild(listItem);
             });
+
+            // Write out the license plates not in transit
+            if (unmatchedInTransit.length > 0) {
+                let section = document.getElementById('unmatchedInTransitList');
+                if (!section) {
+                    section = document.createElement('div');
+                    section.id = 'unmatchedInTransitList';
+                    licensePlateList.appendChild(section);
+                }
+
+                section.innerHTML = '<h4>Nem közlekedő járművek</h4>';
+
+                // Sort unmatchedInTransit by length
+                unmatchedInTransit.sort((a, b) => a.length - b.length);
+
+                unmatchedInTransit.forEach(plate => {
+                    const plateItem = document.createElement('button');
+                    plateItem.classList.add('btn', 'btn-primary', 'w-100', 'text-start', 'mb-2');
+                    plateItem.textContent = plate;
+                    section.appendChild(plateItem);
+                });
+            }
+
         }
 
         // Function to fetch and update data
@@ -256,7 +344,7 @@
 
                             const stopName = vehicle.stopName;
                             const status = vehicle.status;
-
+                            
                             // Create the status message based on the vehicle's status
                             const statusMessage = vehicle.status === 'IN_TRANSIT_TO'
                                 ? `Jelenleg ${stopName} megálló felé közlekedik`
@@ -298,7 +386,7 @@
                         });
                     }else{
                         // Show modal if no vehicles are available
-                        showNoDataModal("Nincs elérhető szerelvény adat jelenleg.");
+                        showNoDataModal("Nincs elérhető adat jelenleg.");
                     }
                 })
                 .catch(error => {
