@@ -9,18 +9,18 @@ app.set('view engine', 'ejs'); // Set EJS as the templating engine
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Function to match stopId to name
-function matchStopIdToName(stopId, stops) {
+const matchStopIdToName = (stopId, stops) => {
     const stop = stops[stopId];
     return stop ? stop.name : null;
 }
 
 // Function to match tripId to tripHeadsign
-function matchTripIdToTripHeadsign(tripId, trips) {
+const matchTripIdToTripHeadsign = (tripId, trips) => {
     const trip = trips[tripId];
     return trip ? trip.tripHeadsign : tripId;
 }
 
-function formatTime(timestamp) {
+const formatTime = (timestamp) => {
     return new Date(timestamp * 1000).toLocaleTimeString('hu-HU', {
         timeZone: 'Europe/Budapest',
         hour: '2-digit',
@@ -29,7 +29,7 @@ function formatTime(timestamp) {
     });
 }
 // Helper function to get the current date in YYYYMMDD format
-function getCurrentDate() {
+const getCurrentDate = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Adding 1 to month as it is 0-indexed
@@ -107,7 +107,6 @@ async function fetchVehiclesForRoute() {
     }
 }
 
-
 // Serve the initial page
 app.get('/', async (req, res) => {
     const vehicles = await fetchVehiclesForRoute();
@@ -128,7 +127,6 @@ app.get('/map', async (req, res) => {
         res.status(500).send('Error fetching vehicle data');
     }
 });
-
 
 const PORT = process.env.PORT || 3000; // Use environment port or default to 3000
 var server = app.listen(PORT, () => {

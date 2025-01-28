@@ -216,13 +216,13 @@
                 "991-992 993-994",
                 "995-996 1141-1142",
                 "1101-1102 1135-1136",
-                "1103-1104 1105-1106",
                 "1107-1108 1109-1110", 
-                "1111-1112 1139-1140",
+                "1111-1112 1113-1114",
                 "1115-1116 1117-1118",
                 "1123-1124 1149-1150",
                 "1127-1128 1129-1130",
                 "1137-1138 971-972",
+                "1139-1140 964-963",
                 "1145-1146 1121-1122",
                 "1147-1148 979-980",
             ];
@@ -320,6 +320,9 @@
             }
 
         }
+        function isset(variable) {
+            return typeof variable !== 'undefined' && variable !== null;
+        }
 
         // Function to fetch and update data
         function fetchData() {
@@ -338,9 +341,20 @@
 
                         // Loop through the vehicle data and add markers for each vehicle
                         data.vehicles.forEach(vehicle => {
-                            const [part1, part2] = vehicle.licensePlate.split("-");
+                            let [part1, part2] = vehicle.licensePlate.split("-");
                             const items = data.licensePlates.filter(item => item.palyaszam.includes(part1) || item.palyaszam.includes(part2));
                             let direction = vehicle.bearing || 0;
+                            
+                            
+                            part1 = part1%2== 0?part1:parseInt(part1)+1;
+
+                            const palyaszam1 = parseInt(part1)-1 + '-' + (parseInt(part1)+400)/2 + '-' + part1;
+                            let palyaszam2 = '';
+
+                            if(isset(part2)){
+                                part2 = part2%2 == 0?part2:parseInt(part2)+1;
+                                palyaszam2 = parseInt(part2)-1 + '-' + (parseInt(part2)+400)/2 + '-' + part2;
+                            }
 
                             const stopName = vehicle.stopName;
                             const status = vehicle.status;
@@ -352,7 +366,11 @@
 
                             // Popup content
                             if (items.length > 0) {
-                                const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
+                                //const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
+                                let palyaszamFormatted = palyaszam1;
+                                if(isset(part2)){
+                                    palyaszamFormatted +=  ' || ' + palyaszam2;
+                                }
                                 const popupContent = `
                                                     <div>
                                                         <span><img src="../icons/H5_logo.png" style="width: 4rem;"> </span>
