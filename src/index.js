@@ -109,14 +109,27 @@ async function fetchVehiclesForRoute() {
 
 // Serve the initial page
 app.get('/', async (req, res) => {
+    res.render('index');
+});
+
+app.get('/logview', async (req, res) => {
+    res.render('logview');
+});
+
+// Map endpoint to fetch vehicle data and license plate data
+app.get('/map', async (req, res) => {
     const vehicles = await fetchVehiclesForRoute();
     const licensePlatesData = JSON.parse(fs.readFileSync('./data/licensePlates.json', 'utf8'));
 
-    res.render('index', { vehicles, licensePlates: licensePlatesData });  // Pass licensePlates to EJS
+    if (vehicles) {
+        // Pass both vehicles and licensePlates to the client
+        res.json({ vehicles, licensePlates: licensePlatesData });
+    } else {
+        res.status(500).send('Error fetching vehicle data');
+    }
 });
 
-// /map endpoint to fetch vehicle data and license plate data
-app.get('/map', async (req, res) => {
+app.get('/log', async (req, res) => {
     const vehicles = await fetchVehiclesForRoute();
     const licensePlatesData = JSON.parse(fs.readFileSync('./data/licensePlates.json', 'utf8'));
 

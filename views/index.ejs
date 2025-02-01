@@ -49,7 +49,7 @@
     </div>
 
     <!-- License Plates Modal -->
-    <div class="modal fade" id="licensePlateModal" tabindex="-1" aria-labelledby="licensePlateModalLabel" aria-hidden="true">
+    <div class="modal fade" id="licensePlateModal" tabindex="-1" aria-labelledby="licensePlateModalLabel" style="display: none;">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
@@ -94,9 +94,9 @@
 
         var tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // Create a MarkerClusterGroup for clustering
-        var markerClusterGroup = L.markerClusterGroup();
-        map.addLayer(markerClusterGroup);
+        // Create a markers for clustering
+        var markers = L.layerGroup();
+        map.addLayer(markers);
 
         //DelayTime
         function calculateDelay(predictedArrivalTime, arrivalTime) {
@@ -141,16 +141,14 @@
                                 <td>${stop.stopId}</td>
                                 <td>${stop.predictedArrivalTime}</td>
                                 <td>${calculateDelay(stop.predictedArrivalTime, stop.arrivalTime)}</td>
-                            </tr>`
-                        ;
+                            </tr>`;
                     } else {
                         stopRow = `
                             <tr>
                                 <td>${stop.stopId}</td>
                                 <td>${stop.predictedDepartureTime}</td>
                                 <td>${calculateDelay(stop.predictedDepartureTime, stop.arrivalTime)}</td>
-                            </tr>`
-                        ;
+                            </tr>`;
                     }
                 } else if (vehicle.stopSequence >= stop.stopSequence && vehicle.status !== 'IN_TRANSIT_TO') {
                     if (stop.predictedArrivalTime !== "Invalid Date") {
@@ -159,16 +157,14 @@
                                 <td>${stop.stopId}</td>
                                 <td>${stop.predictedArrivalTime}</td>
                                 <td>${calculateDelay(stop.predictedArrivalTime, stop.arrivalTime)}</td>
-                            </tr>`
-                        ;
+                            </tr>`;
                     } else {
                         stopRow = `
                             <tr>
                                 <td>${stop.stopId}</td>
                                 <td>${stop.predictedDepartureTime === "Invalid Date" ? stop.departureTime : stop.predictedDepartureTime}</td>
                                 <td>${calculateDelay(stop.predictedDepartureTime, stop.arrivalTime)}</td>
-                            </tr>`
-                        ;
+                            </tr>`;
                     }
                 } else {
                     stopRow = `
@@ -176,8 +172,7 @@
                             <td>${stop.stopId}</td>
                             <td>${stop.predictedArrivalTime === "Invalid Date" ? stop.arrivalTime : stop.predictedArrivalTime}</td>
                             <td>${calculateDelay(stop.predictedArrivalTime, stop.arrivalTime)}</td>
-                        </tr>`
-                    ;
+                        </tr>`;
                 }
                 // Append each stop row to the table
                 stopTimesList.innerHTML += stopRow;
@@ -209,25 +204,6 @@
         function updateLicensePlateModal(vehicles, data) {
             const licensePlateList = document.getElementById('licensePlateList');
 
-            // Predefined list of license plates that are currently in transit
-            const inTransitPlates = [
-                "977-978 975-976",
-                "987-988 989-990",
-                "991-992 993-994",
-                "995-996 1141-1142",
-                "1101-1102 1135-1136",
-                "1107-1108 1109-1110", 
-                "1111-1112 1113-1114",
-                "1115-1116 1117-1118",
-                "1123-1124 1149-1150",
-                "1127-1128 1129-1130",
-                "1137-1138 971-972",
-                "1139-1140 964-963",
-                "1145-1146 1121-1122",
-                "1147-1148 979-980",
-            ];
-            let unmatchedInTransit = [...inTransitPlates]; // Copy of inTransitPlates to track unmatched plates
-
             // Clear the current list
             licensePlateList.innerHTML = '';
             let title = document.createElement('h4');
@@ -242,29 +218,28 @@
                     item.palyaszam.includes(part1) || item.palyaszam.includes(part2)
                 );
 
-                // Format each `palyaszam` as "A-B" and join them with spaces
+                // Format each `palyaszam` as "A-B C-D" or just "A-B"
                 const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
 
                 // Create a button for each vehicle
                 const listItem = document.createElement('button');
-                listItem.classList.add('btn', 'btn-success', 'w-100', 'text-start', 'mb-2');
-
-                // Use a Bootstrap row and column structure for the content
-                listItem.innerHTML = `
+                console.log(palyaszamFormatted);
+                if(!palyaszamFormatted || palyaszamFormatted.trim() === ""){
+                    listItem.classList.add('btn', 'btn-danger', 'w-100', 'text-start', 'mb-2');
+                    listItem.innerHTML = `
+                    <div class="row">
+                        <div class="col-12">
+                            <span>${index + 1}. ${vehicle.licensePlate}</span>
+                        </div>
+                    </div>`;
+                } else{
+                    listItem.classList.add('btn', 'btn-success', 'w-100', 'text-start', 'mb-2');
+                    listItem.innerHTML = `
                     <div class="row">
                         <div class="col-12">
                             <span>${index + 1}. ${palyaszamFormatted}</span>
                         </div>
-                    </div>
-                `;
-
-
-                // Check if the formatted license plate exists in the in-transit list
-                if (inTransitPlates.some(plate => plate.includes(palyaszamFormatted))) {
-                    listItem.classList.replace('btn-success', 'btn-success'); // Keep it green if it's part of an in-transit plate
-                    unmatchedInTransit.splice(unmatchedInTransit.findIndex(plate => plate.includes(palyaszamFormatted)), 1);
-                } else {
-                    listItem.classList.replace('btn-success', 'btn-danger'); // Make it red if not in transit
+                    </div>`;
                 }
 
                 // Add an event listener to close the popup when the modal is opened
@@ -284,44 +259,29 @@
                     modal.hide(); // Close the modal
 
                     // Find the corresponding vehicle marker
-                    const vehicleMarker = markerClusterGroup.getLayers().find(marker => {
-                        const markerPopupContent = marker.getPopup().getContent();
+                    const vehicleMarker = markers.getLayers().find(marker => {
+                        const markerPopupContent = marker.getPopup().getContent()
+                        .replace("||", " ")
+                        .replace(/-\d+-/g, "-")
+                        .replace(/\s+/g, " ")                        
+
                         return markerPopupContent.includes(palyaszamFormatted);
                     });
 
                     if (vehicleMarker) {
                         vehicleMarker.openPopup(); // Open the popup for the corresponding vehicle
+                        map.flyTo(vehicleMarker.getLatLng(), 15, { // Zoom to marker
+                            duration: 1.5 // Smooth transition
+                        });
                     }
                 });
 
                 licensePlateList.appendChild(listItem);
             });
-
-            // Write out the license plates not in transit
-            if (unmatchedInTransit.length > 0) {
-                let section = document.getElementById('unmatchedInTransitList');
-                if (!section) {
-                    section = document.createElement('div');
-                    section.id = 'unmatchedInTransitList';
-                    licensePlateList.appendChild(section);
-                }
-
-                section.innerHTML = '<h4>Nem közlekedő járművek</h4>';
-
-                // Sort unmatchedInTransit by length
-                unmatchedInTransit.sort((a, b) => a.length - b.length);
-
-                unmatchedInTransit.forEach(plate => {
-                    const plateItem = document.createElement('button');
-                    plateItem.classList.add('btn', 'btn-primary', 'w-100', 'text-start', 'mb-2');
-                    plateItem.textContent = plate;
-                    section.appendChild(plateItem);
-                });
-            }
-
         }
-        function isset(variable) {
-            return typeof variable !== 'undefined' && variable !== null;
+
+        function isset(licensePlatePart) {
+            return typeof licensePlatePart !== 'undefined' && licensePlatePart !== null;
         }
 
         // Function to fetch and update data
@@ -330,7 +290,7 @@
                 .then(response => response.json())
                 .then(data => {
                     // Clear all markers in the cluster group only when new data is loaded
-                    markerClusterGroup.clearLayers();
+                    markers.clearLayers();
 
                     // Check if data is available
                     if (data.vehicles && data.vehicles.length > 0) {
@@ -344,18 +304,17 @@
                             let [part1, part2] = vehicle.licensePlate.split("-");
                             const items = data.licensePlates.filter(item => item.palyaszam.includes(part1) || item.palyaszam.includes(part2));
                             let direction = vehicle.bearing || 0;
-                            
-                            
-                            part1 = part1%2== 0?part1:parseInt(part1)+1;
 
-                            const palyaszam1 = parseInt(part1)-1 + '-' + (parseInt(part1)+400)/2 + '-' + part1;
-                            let palyaszam2 = '';
-
+                            // Adjust and format the first half of the license plate (eg: 1123-1124)
+                            part1 = part1 % 2 == 0 ? part1 : parseInt(part1) + 1;
+                            const palyaszam1 = parseInt(part1) - 1 + '-' + (parseInt(part1) + 400) / 2 + '-' + part1;
+                            
+                            // Format the second half of the license plate if it exists (eg: 1149-1150)
                             if(isset(part2)){
-                                part2 = part2%2 == 0?part2:parseInt(part2)+1;
-                                palyaszam2 = parseInt(part2)-1 + '-' + (parseInt(part2)+400)/2 + '-' + part2;
+                                part2 = part2 % 2 == 0 ? part2 : parseInt(part2) + 1;
+                                palyaszam2 = parseInt(part2) - 1 + '-' + (parseInt(part2) + 400) / 2 + '-' + part2;
                             }
-
+                            
                             const stopName = vehicle.stopName;
                             const status = vehicle.status;
                             
@@ -395,7 +354,7 @@
                                 }).bindPopup(popupContent);
 
                                 // Add the marker to the cluster group
-                                markerClusterGroup.addLayer(marker);
+                                markers.addLayer(marker);
 
                                 // Add click event to the marker to display details in the offcanvas
                                 addMarkerClickListener(marker, vehicle);
