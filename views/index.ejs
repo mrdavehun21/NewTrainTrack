@@ -39,14 +39,14 @@
         </div>
     </nav>
     
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <!-- <div class="offcanvas offcanvas-end" tabindex="-1" id="dynamicOffcanvas" aria-labelledby="dynamicOffcanvasLabel">
       <div class="offcanvas-header">
-        <h5 id="offcanvasRightLabel">Menetrend</h5>
+        <h5 id="dynamicOffcanvasLabel">Menetrend</h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
       </div>
-    </div>
+    </div>  -->
 
     <!-- License Plates Modal -->
     <div class="modal fade" id="licensePlateModal" tabindex="-1" aria-labelledby="licensePlateModalLabel" style="display: none;">
@@ -114,8 +114,43 @@
             noDataModal.show();
         }
 
-        // Function to generate stop data dynamically
-        function generateStopData(vehicle) {
+        function openOffcanvasWithContent(vehicle) {
+            // Remove any existing offcanvas to prevent duplication
+            const existingOffcanvas = document.getElementById('dynamicOffcanvas');
+            if (existingOffcanvas) {
+                existingOffcanvas.remove();
+            }
+
+            // Create the offcanvas element
+            const offcanvas = document.createElement('div');
+            offcanvas.id = 'dynamicOffcanvas';
+            offcanvas.className = 'offcanvas offcanvas-end';
+            offcanvas.tabIndex = -1;
+            offcanvas.setAttribute('aria-labelledby', 'dynamicOffcanvasLabel');
+
+            // Create the header with close button
+            const offcanvasHeader = document.createElement('div');
+            offcanvasHeader.className = 'offcanvas-header';
+
+            const offcanvasTitle = document.createElement('h5');
+            offcanvasTitle.className = 'offcanvas-title';
+            offcanvasTitle.innerText = 'Menetrend';
+
+            const closeButton = document.createElement('button');
+            closeButton.className = 'btn-close';
+            closeButton.setAttribute('type', 'button');
+            closeButton.setAttribute('data-bs-dismiss', 'offcanvas');
+            closeButton.setAttribute('aria-label', 'Close');
+
+            offcanvasHeader.appendChild(offcanvasTitle);
+            offcanvasHeader.appendChild(closeButton);
+
+
+            // Create the body of the offcanvas (content area)
+            const offcanvasBody = document.createElement('div');
+            offcanvasBody.className = 'offcanvas-body';
+
+            // Create the stop data container (table)
             const stopDataContainer = document.createElement('div');
             stopDataContainer.innerHTML = `
                 <table class="table">
@@ -128,6 +163,7 @@
                     </thead>
                     <tbody id="stopTimesList"></tbody>
                 </table>`;
+
             const stopTimesList = stopDataContainer.querySelector('#stopTimesList');
 
             // Loop through the stops for this vehicle
@@ -178,22 +214,21 @@
                 stopTimesList.innerHTML += stopRow;
             });
 
-            // Append the stop details container to the offcanvas
-            const offcanvasBody = document.querySelector('#offcanvasRight .offcanvas-body');
+            // Append the stop data container to the offcanvas body
             offcanvasBody.appendChild(stopDataContainer);
-        }
 
-        // Add a click event on each marker to display vehicle stop data
-        function addMarkerClickListener(marker, vehicle) {
-            marker.on('click', function () {
-                // Clear existing data in the offcanvas before displaying new data
-                const offcanvasBody = document.querySelector('#offcanvasRight .offcanvas-body');
-                offcanvasBody.innerHTML = ''; // Clear previous content
-                // Call the function to generate and display the stop data for this vehicle
-                generateStopData(vehicle);
-            });
-        }
+            offcanvas.appendChild(offcanvasHeader);
+            // Append the offcanvas body to the offcanvas
+            offcanvas.appendChild(offcanvasBody);
 
+            // Append the new offcanvas to the body
+            document.body.appendChild(offcanvas);
+
+            // Initialize Bootstrap's offcanvas component
+            var offcanvasInstance = new bootstrap.Offcanvas(offcanvas);
+            offcanvasInstance.show();
+        }        
+        
         // Function to create and update the data length div
         function updateDataLengthDisplay(dataLength) {
             const homeTab = document.getElementById('homeTab');
@@ -211,36 +246,42 @@
             licensePlateList.appendChild(title); // Append the title to the list
 
             vehicles.forEach((vehicle, index) => {
-                const [part1, part2] = vehicle.licensePlate.split("-");
+                //const [part1, part2] = vehicle.licensePlate.split("-");
 
                 // Filter items in data.licensePlates based on `palyaszam` including part1 or part2
-                const items = data.licensePlates.filter(item => 
-                    item.palyaszam.includes(part1) || item.palyaszam.includes(part2)
-                );
+                // const items = data.licensePlates.filter(item => 
+                //     item.palyaszam.includes(part1) || item.palyaszam.includes(part2)
+                // );
 
                 // Format each `palyaszam` as "A-B C-D" or just "A-B"
-                const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
+                //const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
 
+                
                 // Create a button for each vehicle
                 const listItem = document.createElement('button');
-                console.log(palyaszamFormatted);
-                if(!palyaszamFormatted || palyaszamFormatted.trim() === ""){
-                    listItem.classList.add('btn', 'btn-danger', 'w-100', 'text-start', 'mb-2');
+                //console.log(palyaszamFormatted);
+                
+                listItem.classList.add('btn', 'btn-success', 'w-100', 'text-start', 'mb-2');
+               
+                if(vehicle.licensePlate.includes('-')){
                     listItem.innerHTML = `
                     <div class="row">
                         <div class="col-12">
                             <span>${index + 1}. ${vehicle.licensePlate}</span>
                         </div>
                     </div>`;
-                } else{
-                    listItem.classList.add('btn', 'btn-success', 'w-100', 'text-start', 'mb-2');
+                }
+                else{
                     listItem.innerHTML = `
                     <div class="row">
                         <div class="col-12">
-                            <span>${index + 1}. ${palyaszamFormatted}</span>
+                            <span>${index + 1}. "${vehicle.licensePlate}" Hibás</span>
                         </div>
                     </div>`;
                 }
+               
+                
+                
 
                 // Add an event listener to close the popup when the modal is opened
                 const licensePlateModal = document.getElementById('licensePlateModal');
@@ -261,11 +302,11 @@
                     // Find the corresponding vehicle marker
                     const vehicleMarker = markers.getLayers().find(marker => {
                         const markerPopupContent = marker.getPopup().getContent()
-                        .replace("||", " ")
-                        .replace(/-\d+-/g, "-")
-                        .replace(/\s+/g, " ")                        
+                        // .replace("||", " ")
+                        // .replace(/-\d+-/g, "-")
+                        // .replace(/\s+/g, " ")                        
 
-                        return markerPopupContent.includes(palyaszamFormatted);
+                        return markerPopupContent.includes(vehicle.licensePlate);
                     });
 
                     if (vehicleMarker) {
@@ -301,20 +342,21 @@
 
                         // Loop through the vehicle data and add markers for each vehicle
                         data.vehicles.forEach(vehicle => {
-                            let [part1, part2] = vehicle.licensePlate.split("-");
-                            const items = data.licensePlates.filter(item => item.palyaszam.includes(part1) || item.palyaszam.includes(part2));
                             let direction = vehicle.bearing || 0;
+                            /*
+                            let [part1, part2] = vehicle.licensePlate.split("-");
+                            const items = vehicle.licensePlate;
 
-                            // Adjust and format the first half of the license plate (eg: 1123-1124)
+                            Adjust and format the first half of the license plate (eg: 1123-1124)
                             part1 = part1 % 2 == 0 ? part1 : parseInt(part1) + 1;
                             const palyaszam1 = parseInt(part1) - 1 + '-' + (parseInt(part1) + 400) / 2 + '-' + part1;
                             
-                            // Format the second half of the license plate if it exists (eg: 1149-1150)
+                            Format the second half of the license plate if it exists (eg: 1149-1150)
                             if(isset(part2)){
                                 part2 = part2 % 2 == 0 ? part2 : parseInt(part2) + 1;
                                 palyaszam2 = parseInt(part2) - 1 + '-' + (parseInt(part2) + 400) / 2 + '-' + part2;
                             }
-                            
+                            */
                             const stopName = vehicle.stopName;
                             const status = vehicle.status;
                             
@@ -323,43 +365,68 @@
                                 ? `Jelenleg ${stopName} megálló felé közlekedik`
                                 : `Jelenleg ${stopName} megállóban áll`;   
 
-                            // Popup content
+                            /*
+                            //Popup content
                             if (items.length > 0) {
-                                //const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
+                                const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
                                 let palyaszamFormatted = palyaszam1;
                                 if(isset(part2)){
                                     palyaszamFormatted +=  ' || ' + palyaszam2;
                                 }
-                                const popupContent = `
-                                                    <div>
-                                                        <span><img src="../icons/H5_logo.png" style="width: 4rem;"> </span>
-                                                        <span style="font-weight: bolder; font-size: 17px;"> <img src="../icons/nyil.png" style="width: 2rem;"> ${vehicle.tripHeadsign}</span>
-                                                        <hr>
-                                                        <strong>${palyaszamFormatted}</strong>
-                                                        <br>
-                                                        <p>${statusMessage}</p>
-                                                        <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Menetrend</button>
-                                                    </div>`;
+                            */
+                            let popupContent = "";
 
-                                // Create a marker for each vehicle
-                                var marker = L.marker([vehicle.location.lat, vehicle.location.lon], {
-                                    icon: L.divIcon({
-                                        className: 'custom-marker',
-                                        html: `<svg width="26" height="32" viewBox="0 0 26 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(${direction}deg);">
-                                                <path d="M23.9395 18.7344C23.9395 24.8689 18.8493 29.959 12.7148 29.959C6.5909 29.959 1.5 24.8696 1.5 18.7344C1.5 12.6082 6.58187 7.51953 12.7051 7.51953C18.8418 7.51953 23.9395 12.6119 23.9395 18.7344Z" fill="white" stroke="#8A236C" stroke-width="3"/>
-                                                <path d="M21 6L15 4.875L13 4.5L11 4.875L5 6L13 0L21 6Z" fill="black"/>
-                                                </svg>`,
-                                        iconSize: [26, 32]
-                                    })
-                                }).bindPopup(popupContent);
-
-                                // Add the marker to the cluster group
-                                markers.addLayer(marker);
-
-                                // Add click event to the marker to display details in the offcanvas
-                                addMarkerClickListener(marker, vehicle);
-                                
+                            if(vehicle.licensePlate.includes('-')){
+                                popupContent = `
+                                    <div>
+                                        <span><img src="../icons/H5_logo.png" style="width: 4rem;"> </span>
+                                        <span style="font-weight: bolder; font-size: 17px;"> <img src="../icons/nyil.png" style="width: 2rem;"> ${vehicle.tripHeadsign}</span>
+                                        <hr>
+                                        <strong>${vehicle.licensePlate}</strong>
+                                        <br>
+                                        <p>${statusMessage}</p>
+                                        <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" id="scheduleButton">Menetrend</button>
+                                    </div>`;
                             }
+                            else {
+                                popupContent = `
+                                    <div>
+                                        <span><img src="../icons/H5_logo.png" style="width: 4rem;"> </span>
+                                        <span style="font-weight: bolder; font-size: 17px;"> <img src="../icons/nyil.png" style="width: 2rem;"> ${vehicle.tripHeadsign}</span>
+                                        <hr>
+                                        <strong>"${vehicle.licensePlate}" Hibás pályaszám</strong>
+                                        <br>
+                                        <p>${statusMessage}</p>
+                                        <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" id="scheduleButton">Menetrend</button>
+                                    </div>`;
+                            }
+
+                            
+
+                            // Create a marker for each vehicle
+                            var marker = L.marker([vehicle.location.lat, vehicle.location.lon], {
+                                icon: L.divIcon({
+                                    className: 'custom-marker',
+                                    html: `<svg width="26" height="32" viewBox="0 0 26 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(${direction}deg);">
+                                            <path d="M23.9395 18.7344C23.9395 24.8689 18.8493 29.959 12.7148 29.959C6.5909 29.959 1.5 24.8696 1.5 18.7344C1.5 12.6082 6.58187 7.51953 12.7051 7.51953C18.8418 7.51953 23.9395 12.6119 23.9395 18.7344Z" fill="white" stroke="#8A236C" stroke-width="3"/>
+                                            <path d="M21 6L15 4.875L13 4.5L11 4.875L5 6L13 0L21 6Z" fill="black"/>
+                                            </svg>`,
+                                    iconSize: [26, 32]
+                                })
+                            }).bindPopup(popupContent);
+
+                            // Add the marker to the cluster group
+                            markers.addLayer(marker);
+
+                            // Add event listener to the "Menetrend" button in the popup content
+                            marker.on('popupopen', function () {
+                                const scheduleButton = document.getElementById('scheduleButton');
+                                if (scheduleButton) {
+                                    scheduleButton.addEventListener('click', function () {
+                                        openOffcanvasWithContent(vehicle);
+                                    });
+                                }
+                            });
                         });
                     }else{
                         // Show modal if no vehicles are available

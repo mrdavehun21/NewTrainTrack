@@ -29,8 +29,25 @@
         <div class="row col-6" id="list"></div>
     </div>
 
-    <script>
+    <h1>Data from MongoDB</h1>
+    <% if (trains.length > 0) { %>
+        <ul>
+            <% trains.forEach(train => { %>
+                <li>
+                    <strong><%= train.vonal %></strong> - 
+                    <%= train.palyaszam %> - 
+                    <%= train.irany %> - 
+                    Timestamp: <%= new Date(train.Timestamp * 1000).toLocaleString() %>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>No train data available.</p>
+    <% } %>
+    
 
+    <script>
+        /*
         // Function to show the no-data/error modal with a custom message
         function showNoDataModal(message) {
             const modalBody = document.getElementById('noDataModalBody');
@@ -53,34 +70,11 @@
                 .then(data => {
                     if (data.vehicles && data.vehicles.length > 0) {
                         data.vehicles.forEach(vehicle => {
-                            let [part1, part2] = vehicle.licensePlate.split("-");
-                            const items = data.licensePlates.filter(item => item.palyaszam.includes(part1) || item.palyaszam.includes(part2));
-
-                            // Adjust and format the first half of the license plate (eg: 1123-1124)
-                            part1 = part1 % 2 == 0 ? part1 : parseInt(part1) + 1;
-                            const palyaszam1 = parseInt(part1) - 1 + '-' + (parseInt(part1) + 400) / 2 + '-' + part1;
-                            
-                            // Format the second half of the license plate if it exists (eg: 1149-1150)
-                            if(isset(part2)){
-                                part2 = part2 % 2 == 0 ? part2 : parseInt(part2) + 1;
-                                palyaszam2 = parseInt(part2) - 1 + '-' + (parseInt(part2) + 400) / 2 + '-' + part2;
-                            }
-
-                            // Format each `palyaszam` as "A-B C-D" or just "A-B"
-                            const palyaszamFormatted = items.map(item => `${item.palyaszam[0]}-${item.palyaszam[1]}`).join(' ');
-
                             const listItem = document.createElement('button');
 
-                            if(!palyaszamFormatted || palyaszamFormatted.trim() === ""){
-                                listItem.classList.add('btn', 'btn-danger', 'mb-2');
-                                listItem.innerHTML = `
-                                        <span>${vehicle.licensePlate}</span>`;
-                            } else{
-                                listItem.classList.add('btn', 'btn-success', 'mb-2');
-                                listItem.innerHTML = `
-                                        <span>${palyaszamFormatted}</span>`;
-                            }
-
+                            listItem.classList.add('btn', 'btn-success', 'mb-2');
+                            listItem.innerHTML = `
+                                <span>${vehicle.licensePlate}</span>`;
                             // Append the created button to the list container
                             listContainer.appendChild(listItem);
 
@@ -101,6 +95,7 @@
 
         // Refresh data every 30 seconds (30000 milliseconds)
         setInterval(fetchData, 30000);
+        */
     </script>
 
 </body>

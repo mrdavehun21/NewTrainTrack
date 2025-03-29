@@ -5,6 +5,19 @@ const path = require('path');
 const app = express();
 require('dotenv').config();
 
+/*
+const mongoose = require('mongoose');
+// Connect to MongoDB
+const mongooseConnection = process.env.MONGOOSECONNECTION;
+
+mongoose.connect(mongooseConnection)
+.then(() => {
+    console.log('MongoDB connected successfully');
+})
+.catch(err => {
+    console.log('MongoDB connection error:', err);
+});
+*/
 app.set('view engine', 'ejs'); // Set EJS as the templating engine
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -106,30 +119,44 @@ async function fetchVehiclesForRoute() {
         return null;
     }
 }
+/*
+// Define the schema for the train
+const trainSchema = new mongoose.Schema({
+    Timestamp: Number,
+    vonal: String,
+    palyaszam: String,
+    irany: String
+});
 
+// Create the model for the trains
+const Train = mongoose.model('Train', trainSchema, 'Trains');
+
+// Route to fetch train data
+app.get('/logview', async (req, res) => {
+    try {
+        // Fetch train data from the collection
+        const trainsData = await Train.find().lean();
+        console.log("Fetched train data:", trainsData);  // Log the data to the console
+
+        if (!trainsData || trainsData.length === 0) {
+            return res.status(404).send('No train data found');
+        }
+
+        // Pass the fetched data to the EJS template
+        res.render('logview', { trains: trainsData });
+    } catch (err) {
+        console.log('Error fetching train data:', err);  // Log any errors
+        res.status(500).send('Error fetching train data');
+    }
+});
+*/
 // Serve the initial page
 app.get('/', async (req, res) => {
     res.render('index');
 });
 
-app.get('/logview', async (req, res) => {
-    res.render('logview');
-});
-
 // Map endpoint to fetch vehicle data and license plate data
 app.get('/map', async (req, res) => {
-    const vehicles = await fetchVehiclesForRoute();
-    const licensePlatesData = JSON.parse(fs.readFileSync('./data/licensePlates.json', 'utf8'));
-
-    if (vehicles) {
-        // Pass both vehicles and licensePlates to the client
-        res.json({ vehicles, licensePlates: licensePlatesData });
-    } else {
-        res.status(500).send('Error fetching vehicle data');
-    }
-});
-
-app.get('/log', async (req, res) => {
     const vehicles = await fetchVehiclesForRoute();
     const licensePlatesData = JSON.parse(fs.readFileSync('./data/licensePlates.json', 'utf8'));
 
